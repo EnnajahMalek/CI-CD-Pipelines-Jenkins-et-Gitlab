@@ -1,0 +1,87 @@
+stages:
+  - build
+  - test
+  - docker-build
+  - docker-push
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+  # Adresse du registry Nexus
+  REGISTRY_URL: "localhost:5000"
+  IMAGE_NAME: "tp-gitlab-ci"
+
+# ------------------------------
+# 1. BUILD
+# ------------------------------
+build_job:
+  stage: build
+  image: node:20
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1h
+
+# ------------------------------
+# 2. TEST
+# ------------------------------
+test_job:
+  stage: test
+  image: node:20
+  script:
+    - npm install
+    - npm test
+
+# ------------------------------
+# 3. DOCKER BUILD
+# ------------------------------
+docker_build:
+  stage: docker-build
+  image: docker:25
+  services:
+    - docker:25-dind
+  script:
+    - docker build -t $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker tag $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA $REGISTRY_URL/$IMAGE_NAME:latest
+  artifacts:
+    paths:
+      - docker-image-info.txt
+  after_script:
+    - echo "Image $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" > docker-image-info.txt
+
+# ------------------------------
+# 4. DOCKER PUSH (Nexus)
+# ------------------------------
+docker_push:
+  stage: docker-push
+  image: docker:25
+  services:
+    - docker:25-dind
+  script:
+    - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
+    - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $REGISTRY_URL/$IMAGE_NAME:latest
+
+# ------------------------------
+# 5. DEPLOY LOCAL
+# ------------------------------
+deploy_local:
+  stage: deploy
+  image: docker:25
+  services:
+    - docker:25-dind
+  script:
+    - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
+
+    # Stop/remove old container (ignore errors)
+    - docker rm -f tp-gitlab-ci || true
+
+    # Pull & Run
+    - docker pull $REGISTRY_URL/$IMAGE_NAME:latest
+    - docker run -d --name tp-gitlab-ci -p 3000:3000 $REGISTRY_URL/$IMAGE_NAME:latest
+
+
