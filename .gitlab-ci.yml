@@ -21,6 +21,8 @@ build_job:
   stage: build
   image: node:20
   script:
+    - echo "i am here..."
+    - hostname
     - npm install
     - npm install -g jest
     - jest --coverage
