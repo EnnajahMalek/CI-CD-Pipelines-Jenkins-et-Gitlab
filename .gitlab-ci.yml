@@ -18,9 +18,9 @@ build_job:
   image: node:20
   script:
     - echo "Building..."
-    - npm install
-    # FIX: Use npx to run jest
-    - npx jest --coverage
+    - npm install 
+    - npm install -g jest 
+    - jest --coverage
   artifacts:
     paths:
       - node_modules/
