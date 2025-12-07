@@ -9,40 +9,34 @@ stages:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
-
-  # Adresse du registry Nexus
   REGISTRY_URL: "localhost:5000"
   IMAGE_NAME: "tp-gitlab-ci"
 
-# ------------------------------
 # 1. BUILD
-# ------------------------------
 build_job:
   stage: build
   image: node:20
   script:
-    - echo "i am here..."
-    - hostname
+    - echo "Building..."
     - npm install
-    - npm install --save-dev jest
-    - NODE_ENV=test jest --coverage
+    # FIX: Use npx to run jest
+    - npx jest --coverage
   artifacts:
     paths:
       - node_modules/
     expire_in: 1h
 
-
-# ------------------------------
 # 2. TEST
-# ------------------------------
 test_job:
   stage: test
   image: node:20
+  dependencies: 
+    - build_job # This tells it to use artifacts (node_modules) from build_job
   script:
-    - npm install
+    # We don't need 'npm install' here because we pulled artifacts from build_job
     - npm test
 
-# ------------------------------
+ # ------------------------------
 # 3. DOCKER BUILD
 # ------------------------------
 docker_build:
