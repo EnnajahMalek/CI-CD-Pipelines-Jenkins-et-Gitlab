@@ -11,7 +11,10 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   REGISTRY_URL: "localhost:5000"
   IMAGE_NAME: "tp-gitlab-ci"
-
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
 # 1. BUILD
 build_job:
   stage: build
@@ -30,10 +33,10 @@ build_job:
 test_job:
   stage: test
   image: node:20
-  dependencies: 
-    - build_job # This tells it to use artifacts (node_modules) from build_job
   script:
-    # We don't need 'npm install' here because we pulled artifacts from build_job
+    - echo "Testing..."
+    # We install dependencies again to ensure permissions are correct on this new container
+    - npm install
     - npm test
 
  # ------------------------------
