@@ -24,7 +24,7 @@ build_job:
     - echo "i am here..."
     - hostname
     - npm install
-    - npm install -g jest
+    - npm install --save-dev jest
     - NODE_ENV=test jest --coverage
   artifacts:
     paths:
