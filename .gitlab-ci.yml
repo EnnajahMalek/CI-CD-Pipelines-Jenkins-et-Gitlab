@@ -1,7 +1,6 @@
 stages:
   - build
   - test
-  - scan
   - docker-build
   - docker-push
   - deploy
@@ -20,23 +19,25 @@ build_job:
   stage: build
   image: node:20
   script:
-    - echo "Building..."
-    - npm install 
-    - npm install -g jest 
-    - jest --coverage
+    - echo "📦 Installing dependencies..."
+    - npm ci
+    - echo "🧪 Running Jest coverage..."
+    - npm test -- --coverage
   artifacts:
     paths:
-      - node_modules/
+      - coverage/
     expire_in: 1h
 
+# ------------------------------
 # 2. TEST
+# ------------------------------
 test_job:
-  stage: test 
+  stage: test
   image: node:20
   script:
-    - echo "Testing..."
-    # We install dependencies again to ensure permissions are correct on this new container
-    - npm install
+    - echo "📦 Installing dependencies (clean)..."
+    - npm ci
+    - echo "🧪 Running unit tests..."
     - npm test
 
  # ------------------------------
