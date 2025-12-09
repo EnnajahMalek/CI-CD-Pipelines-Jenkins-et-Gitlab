@@ -31,7 +31,7 @@ build_job:
 
 # 2. TEST
 test_job:
-  stage: test
+  stage: test 
   image: node:20
   script:
     - echo "Testing..."
