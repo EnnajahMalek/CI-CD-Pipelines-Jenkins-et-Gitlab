@@ -5,8 +5,7 @@ stages:
   - docker-push
   - deploy
 
- 
- 
+  
 # 1. BUILD
 build_job:
   stage: build
@@ -44,11 +43,6 @@ docker-build:
   script:
     - docker info
     - docker build -t my-image:latest .
-  artifacts:
-    paths:
-      - docker-image-info.txt
-    after_script:
-      - echo "Image $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" > docker-image-info.txt
 
 # ------------------------------
 # 4. DOCKER PUSH (Nexus)
