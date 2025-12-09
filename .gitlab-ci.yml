@@ -5,23 +5,14 @@ stages:
   - docker-push
   - deploy
 
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
-  REGISTRY_URL: "localhost:5000"
-  IMAGE_NAME: "tp-gitlab-ci"
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
+ 
+ 
 # 1. BUILD
 build_job:
   stage: build
   image: node:20
   script:
-    - echo "📦 Installing dependencies..."
-    - npm ci
-    - echo "🧪 Running Jest coverage..."
+    - npm ci 
     - npm test -- --coverage
   artifacts:
     paths:
@@ -34,10 +25,8 @@ build_job:
 test_job:
   stage: test
   image: node:20
-  script:
-    - echo "📦 Installing dependencies (clean)..."
-    - npm ci
-    - echo "🧪 Running unit tests..."
+  script: 
+    - npm ci 
     - npm test
 
  # ------------------------------
