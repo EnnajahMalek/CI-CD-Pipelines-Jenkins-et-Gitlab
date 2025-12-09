@@ -32,19 +32,23 @@ test_job:
  # ------------------------------
 # 3. DOCKER BUILD
 # ------------------------------
-docker_build:
+docker-build:
   stage: docker-build
   image: docker:25
   services:
-    - docker:25-dind
+    - name: docker:25-dind
+      command: ["--tls=false"]
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    DOCKER_TLS_CERTDIR: ""   
   script:
-    - docker build -t $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
-    - docker tag $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA $REGISTRY_URL/$IMAGE_NAME:latest
+    - docker info
+    - docker build -t my-image:latest .
   artifacts:
     paths:
       - docker-image-info.txt
-  after_script:
-    - echo "Image $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" > docker-image-info.txt
+    after_script:
+      - echo "Image $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" > docker-image-info.txt
 
 # ------------------------------
 # 4. DOCKER PUSH (Nexus)
