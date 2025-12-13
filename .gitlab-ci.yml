@@ -36,8 +36,7 @@ docker-build:
   image: docker:25
   services:
     - name: docker:25-dind
-      command: ["--tls=false --add-host registry.local:172.17.0.1"] 
-      
+      command: ["--tls=false"]
   variables:
     DOCKER_HOST: "tcp://docker:2375"
     DOCKER_TLS_CERTDIR: ""   
@@ -51,15 +50,13 @@ docker-build:
 docker_push:
   stage: docker-push
   image: docker:25
-   
   services:
-    - name: docker:25-dind
-      command: ["--tls=false --add-host registry.local:172.17.0.1"]
+    - docker:25-dind
   script:
-    - echo "$REGISTRY_URL" 
+    - echo "$REGISTRY_URL"
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
     - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker push $REGISTRY_URL/$IMAGE_NAME:latest 
+    - docker push $REGISTRY_URL/$IMAGE_NAME:latest
 
 # ------------------------------
 # 5. DEPLOY LOCAL
@@ -68,8 +65,7 @@ deploy_local:
   stage: deploy
   image: docker:25
   services:
-    - name: docker:25-dind
-      command: ["--tls=false --add-host registry.local:172.17.0.1"]
+    - docker:25-dind
   script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
 
