@@ -1,17 +1,18 @@
 stages:
   - build
   - test
-  - docker-build
-  - docker-push
+  - docker
   - deploy
 
-  
-# 1. BUILD
+# ------------------------------
+# 1. BUILD (Node image)
+# ------------------------------
 build_job:
   stage: build
   image: node:20
+  tags: [node]
   script:
-    - npm ci 
+    - npm ci
     - npm test -- --coverage
   artifacts:
     paths:
@@ -19,61 +20,41 @@ build_job:
     expire_in: 1h
 
 # ------------------------------
-# 2. TEST
+# 2. TEST (Node image)
 # ------------------------------
 test_job:
   stage: test
   image: node:20
-  script: 
-    - npm ci 
+  tags: [node]
+  script:
+    - npm ci
     - npm test
 
- # ------------------------------
-# 3. DOCKER BUILD
 # ------------------------------
-docker-build:
-  stage: docker-build
-  image: docker:25
-  services:
-    - name: docker:25-dind
-      command: ["--tls=false"]
-  variables:
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""   
+# 3. DOCKER BUILD + PUSH (Host Docker)
+# ------------------------------
+docker_build_push:
+  stage: docker
+  tags: [dockerx]
   script:
-    - docker info
-    - docker build -t my-image:latest .
-
-# ------------------------------
-# 4. DOCKER PUSH (Nexus)
-# ------------------------------
-docker_push:
-  stage: docker-push
-  image: docker:25
-  services:
-    - docker:25-dind
-  script:
-    - echo "$REGISTRY_URL"
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
-    - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+
+    - docker build -t $IMAGE_NAME:latest .
+    - docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
+    - docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+
     - docker push $REGISTRY_URL/$IMAGE_NAME:latest
+    - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 # ------------------------------
-# 5. DEPLOY LOCAL
+# 4. DEPLOY LOCAL
 # ------------------------------
 deploy_local:
   stage: deploy
-  image: docker:25
-  services:
-    - docker:25-dind
+  tags: [dockerx]
   script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
 
-    # Stop/remove old container (ignore errors)
     - docker rm -f tp-gitlab-ci || true
-
-    # Pull & Run
     - docker pull $REGISTRY_URL/$IMAGE_NAME:latest
     - docker run -d --name tp-gitlab-ci -p 3000:3000 $REGISTRY_URL/$IMAGE_NAME:latest
-
-
