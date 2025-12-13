@@ -52,6 +52,8 @@ docker_push:
   image: docker:25
   services:
     - docker:25-dind
+      command: 
+        - "--insecure-registry=172.17.0.1:5000"
   script:
     - echo "$REGISTRY_URL"
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
