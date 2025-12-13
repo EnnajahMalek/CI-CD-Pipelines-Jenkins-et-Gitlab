@@ -34,9 +34,11 @@ test_job:
 docker-build:
   stage: docker-build
   image: docker:25
-  services:
+  services: 
     - name: docker:25-dind
-      command: ["--tls=false"]
+      command: 
+        - "--insecure-registry=172.17.0.1:5000"
+        - "--tls=false"
   variables:
     DOCKER_HOST: "tcp://docker:2375"
     DOCKER_TLS_CERTDIR: ""   
@@ -50,8 +52,11 @@ docker-build:
 docker_push:
   stage: docker-push
   image: docker:25
-  services:
-    - docker:25-dind
+  services: 
+    - name: docker:25-dind
+      command: 
+        - "--insecure-registry=172.17.0.1:5000"
+        - "--tls=false"
   script:
     - echo "$REGISTRY_URL"
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
@@ -64,8 +69,11 @@ docker_push:
 deploy_local:
   stage: deploy
   image: docker:25
-  services:
-    - docker:25-dind
+  services: 
+    - name: docker:25-dind
+      command: 
+        - "--insecure-registry=172.17.0.1:5000"
+        - "--tls=false"
   script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
 
