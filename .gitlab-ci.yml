@@ -5,52 +5,51 @@ stages:
   - docker-push
   - deploy
 
-# ... (build_job and test_job remain unchanged)
+# ------------------------------
+# 1. BUILD
+# ------------------------------
+build_job:
+  stage: build
+  script:
+    - npm ci
+    - npm run build
 
- # ------------------------------
+# ------------------------------
+# 2. TEST
+# ------------------------------
+test_job:
+  stage: test
+  script:
+    - npm ci
+    - npm test
+
+# ------------------------------
 # 3. DOCKER BUILD
 # ------------------------------
-docker-build:
+docker_build:
   stage: docker-build
-  image: docker:25 
-  variables: 
-    DOCKER_HOST: "unix:///var/run/docker.sock"  
-    DOCKER_TLS_CERTDIR: "" 
   script:
-    - docker info
-    - docker build -t my-image:latest . 
-  tags:
-    - docker-host  
+    - docker build -t $IMAGE_NAME:latest .
+    - docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
+
 # ------------------------------
-# 4. DOCKER PUSH (Nexus)
+# 4. DOCKER PUSH
 # ------------------------------
 docker_push:
   stage: docker-push
-  image: docker:25 
-  variables:
-    DOCKER_HOST: "unix:///var/run/docker.sock"  
-    DOCKER_TLS_CERTDIR: ""
   script:
-    - echo "$REGISTRY_URL" 
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
     - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     - docker push $REGISTRY_URL/$IMAGE_NAME:latest
-  tags:
-    - docker-host
 
 # ------------------------------
 # 5. DEPLOY LOCAL
 # ------------------------------
 deploy_local:
   stage: deploy
-  image: docker:25 
-  variables:
-    DOCKER_HOST: "unix:///var/run/docker.sock" 
-    DOCKER_TLS_CERTDIR: ""
   script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
     - docker rm -f tp-gitlab-ci || true
     - docker pull $REGISTRY_URL/$IMAGE_NAME:latest
     - docker run -d --name tp-gitlab-ci -p 3000:3000 $REGISTRY_URL/$IMAGE_NAME:latest
-  tags:
-    - docker-host
