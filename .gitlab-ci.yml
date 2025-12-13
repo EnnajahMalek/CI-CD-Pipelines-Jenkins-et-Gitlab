@@ -36,7 +36,7 @@ docker-build:
   image: docker:25
   services:
     - name: docker:25-dind
-      command: ["--tls=false"]
+      command: ["--tls=false --add-host registry.local:172.17.0.1"]
       
   variables:
     DOCKER_HOST: "tcp://docker:2375"
@@ -54,9 +54,7 @@ docker_push:
    
   services:
     - name: docker:25-dind
-      command: 
-        - "--tls=false"
-        - "--add-host=registry.local:172.17.0.1"
+      command: ["--tls=false --add-host registry.local:172.17.0.1"]
   script:
     - echo "$REGISTRY_URL" 
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
@@ -71,7 +69,7 @@ deploy_local:
   image: docker:25
   services:
     - name: docker:25-dind
-      command: ["--tls=false"]
+      command: ["--tls=false --add-host registry.local:172.17.0.1"]
   script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
 
