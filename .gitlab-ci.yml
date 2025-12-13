@@ -58,7 +58,7 @@ docker_push:
     - echo "$REGISTRY_URL" 
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL -u "$NEXUS_USERNAME" --password-stdin
     - docker push $REGISTRY_URL/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker push $REGISTRY_URL/$IMAGE_NAME:latest
+    - docker push $REGISTRY_URL/$IMAGE_NAME:latest 
 
 # ------------------------------
 # 5. DEPLOY LOCAL
