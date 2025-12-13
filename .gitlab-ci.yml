@@ -53,6 +53,8 @@ docker_push:
   image: docker:25
   services:
     - name: docker:25-dind
+      extra_hosts:
+        - "registry.local:172.17.0.1"
       command: ["--tls=false"]
   script:
     - echo "$REGISTRY_URL" 
