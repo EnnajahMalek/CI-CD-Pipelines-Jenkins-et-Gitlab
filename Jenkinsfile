@@ -12,11 +12,12 @@ pipeline {
             agent {
                 docker {
                     image 'node:20'
-                 
+                    args '-u root'
                 }
             }
             steps {
-                sh 'npm ci --cache /tmp/npm_cache' 
+                // Use npm cache to speed up builds
+                sh 'npm ci --cache /tmp/npm_cache'
                 sh 'npm test -- --coverage'
             }
         }
@@ -42,21 +43,14 @@ pipeline {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'nexus-creds1',
-                    usernameVariable: 'NEXUS_USERNAME',
-                    passwordVariable: 'NEXUS_PASSWORD'
-                )]) {
-                    sh '''
-                      echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL \
-                        -u "$NEXUS_USERNAME" --password-stdin
-                      docker push $REGISTRY_URL/$IMAGE_NAME:latest
-                    '''
-                }
+                // Direct push, no login
+                sh '''
+                  docker push $REGISTRY_URL/$IMAGE_NAME:latest
+                '''
             }
         }
 
@@ -64,7 +58,7 @@ pipeline {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
