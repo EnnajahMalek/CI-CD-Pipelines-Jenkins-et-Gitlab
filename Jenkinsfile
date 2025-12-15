@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:20'
+            args '-u root'
+        }
+    }
 
     environment {
         IMAGE_NAME = "my-image"
@@ -8,9 +13,8 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                sh 'npm install'
                 sh 'npm ci'
                 sh 'npm test -- --coverage'
             }
@@ -37,7 +41,6 @@ pipeline {
                     sh '''
                       echo "$NEXUS_PASSWORD" | docker login $REGISTRY_URL \
                         -u "$NEXUS_USERNAME" --password-stdin
-
                       docker push $REGISTRY_URL/$IMAGE_NAME:latest
                     '''
                 }
