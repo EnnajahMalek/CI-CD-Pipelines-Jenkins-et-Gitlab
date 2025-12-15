@@ -11,11 +11,12 @@ pipeline {
         stage('Build & Test') {
             agent {
                 docker {
-                    image 'node:20' 
+                    image 'node:20'
+                 
                 }
             }
             steps {
-                sh 'npm ci'
+                sh 'npm ci --cache /tmp/npm_cache' 
                 sh 'npm test -- --coverage'
             }
         }
