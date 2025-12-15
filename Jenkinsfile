@@ -6,6 +6,10 @@ pipeline {
         REGISTRY_URL = "172.17.0.1:5000"
     }
 
+    options {
+        skipDefaultCheckout()  // Prevent Jenkins from checking out automatically
+    }
+
     stages {
 
         stage('Build & Test') {
@@ -16,8 +20,16 @@ pipeline {
                 }
             }
             steps {
-                sh 'npm ci'
-                sh 'npm test -- --coverage'
+                // Start with a clean workspace
+                deleteDir()
+                checkout scm
+
+                // npm install/test inside container with unsafe-perm
+                sh '''
+                  rm -rf node_modules
+                  npm ci --unsafe-perm
+                  npm test -- --coverage
+                '''
             }
         }
 
@@ -42,7 +54,7 @@ pipeline {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
@@ -64,7 +76,7 @@ pipeline {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
