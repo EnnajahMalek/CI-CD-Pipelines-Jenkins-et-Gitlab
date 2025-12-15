@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "my-image"
-        REGISTRY_URL = "172.12.0.2:5000"
+        REGISTRY_URL = "172.18.0.2:5000"
     }
 
     stages {
