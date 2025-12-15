@@ -12,12 +12,11 @@ pipeline {
             agent {
                 docker {
                     image 'node:20'
-                    args '-u root'
+                 
                 }
             }
             steps {
-                // Use npm cache to speed up builds
-                sh 'npm ci --cache /tmp/npm_cache'
+                sh 'npm ci --cache /tmp/npm_cache' 
                 sh 'npm test -- --coverage'
             }
         }
@@ -46,19 +45,20 @@ pipeline {
                     args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
-            steps {
-                // Direct push, no login
+            steps { 
                 sh '''
                   docker push $REGISTRY_URL/$IMAGE_NAME:latest
                 '''
             }
         }
 
+
+
         stage('Deploy Local') {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
