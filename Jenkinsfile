@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20'
-            args '-u root'
-        }
-    }
+    agent none
 
     environment {
         IMAGE_NAME = "my-image"
@@ -14,6 +9,11 @@ pipeline {
     stages {
 
         stage('Build & Test') {
+            agent {
+                docker {
+                    image 'node:20'
+                }
+            }
             steps {
                 sh 'npm ci'
                 sh 'npm test -- --coverage'
@@ -21,6 +21,12 @@ pipeline {
         }
 
         stage('Docker Build') {
+            agent {
+                docker {
+                    image 'docker:25'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 sh '''
                   docker build \
@@ -32,6 +38,12 @@ pipeline {
         }
 
         stage('Docker Push') {
+            agent {
+                docker {
+                    image 'docker:25'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'nexus-creds1',
@@ -48,6 +60,12 @@ pipeline {
         }
 
         stage('Deploy Local') {
+            agent {
+                docker {
+                    image 'docker:25'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 sh '''
                   docker rm -f tp-gitlab-ci || true
