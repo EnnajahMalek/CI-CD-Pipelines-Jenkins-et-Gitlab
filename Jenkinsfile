@@ -12,11 +12,10 @@ pipeline {
             agent {
                 docker {
                     image 'node:20'
-                 
                 }
             }
             steps {
-                sh 'npm ci --cache /tmp/npm_cache' 
+                sh 'npm ci --cache /tmp/npm_cache'
                 sh 'npm test -- --coverage'
             }
         }
@@ -45,20 +44,19 @@ pipeline {
                     args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
-            steps { 
+            steps {
+                // Push anonymously — no login
                 sh '''
                   docker push $REGISTRY_URL/$IMAGE_NAME:latest
                 '''
             }
         }
 
-
-
         stage('Deploy Local') {
             agent {
                 docker {
                     image 'docker:25'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
