@@ -10,6 +10,7 @@ pipeline {
 
         stage('Build') {
             steps {
+                sh 'npm install'
                 sh 'npm ci'
                 sh 'npm test -- --coverage'
             }
@@ -29,7 +30,7 @@ pipeline {
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus-creds',
+                    credentialsId: 'nexus-creds1',
                     usernameVariable: 'NEXUS_USERNAME',
                     passwordVariable: 'NEXUS_PASSWORD'
                 )]) {
